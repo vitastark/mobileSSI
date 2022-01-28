@@ -69,6 +69,39 @@ namespace ssi {
 		_n_samples = 0;
 	}
 
+	IModel::TYPE::List LibLinear::getModelType()
+	{
+		if (!isTrained())
+		{
+			parameter param;
+			if (!parseParams(&param, _options.params))
+			{
+				ssi_wrn("could not parse parameters");
+			}
+			if (param.solver_type == L2R_L2LOSS_SVR ||
+				param.solver_type == L2R_L1LOSS_SVR_DUAL ||
+				param.solver_type == L2R_L2LOSS_SVR_DUAL)
+			{
+				return IModel::TYPE::REGRESSION;
+			}
+			else
+			{
+				return IModel::TYPE::CLASSIFICATION;
+			}
+		}
+		else
+		{
+			if (check_regression_model((model*)_model))
+			{
+				return IModel::TYPE::REGRESSION;
+			}
+			else
+			{
+				return IModel::TYPE::CLASSIFICATION;
+			}
+		}
+	}
+
 	void LibLinear::exit_with_help()
 	{
 		ssi_print(			
@@ -402,9 +435,10 @@ namespace ssi {
 		return true;
 	}
 
-	bool LibLinear::forward(ssi_stream_t &stream,
+	bool LibLinear::forward(ssi_stream_t& stream,
 		ssi_size_t n_probs,
-		ssi_real_t *probs) {
+		ssi_real_t* probs,
+		ssi_real_t& confidence) {
 
 		if (!isTrained()) {
 			ssi_wrn("not trained");
@@ -423,8 +457,8 @@ namespace ssi {
 
 		_n_features = stream.dim;
 
-		feature_node *x = new feature_node[_n_features + 1 + 1]; // one extra for bias term
-		float *ptr = ssi_pcast(float, stream.ptr);
+		feature_node* x = new feature_node[_n_features + 1 + 1]; // one extra for bias term
+		float* ptr = ssi_pcast(float, stream.ptr);
 		ssi_size_t index = 0;
 		for (; index < _n_features; index++) {
 			x[index].index = index + 1;
@@ -439,8 +473,8 @@ namespace ssi {
 		x[index].index = -1;
 
 		if (n_probs >= 2) // MULTICLASS
-		{									
-			double *prob_estimates = new double[n_probs];
+		{
+			double* prob_estimates = new double[n_probs];
 			if (check_probability_model((model*)_model))
 			{
 				predict_probability((model*)_model, x, prob_estimates);
@@ -452,9 +486,20 @@ namespace ssi {
 			{
 				if (n_probs == 2)
 				{
-					double label = predict((model*)_model, x);
+					/*double label = predict((model*)_model, x);
 					probs[0] = label == 0 ? 1.0f : 0.0f;
-					probs[1] = label == 1 ? 1.0f : 0.0f;
+					probs[1] = label == 1 ? 1.0f : 0.0f;*/
+
+					predict_values((model*)_model, x, prob_estimates);
+
+					prob_estimates[0] = 1 / (1 + exp(-prob_estimates[0]));
+					prob_estimates[1] = 1. - prob_estimates[0];
+
+					for (ssi_size_t j = 0; j < _n_classes; j++) {
+						probs[j] = (ssi_real_t)prob_estimates[j];
+					}
+
+
 				}
 				else
 				{
@@ -474,16 +519,18 @@ namespace ssi {
 					}
 				}
 			}
-			
+
+			ssi_max(n_probs, 1, probs, &confidence);
+
 			delete[] prob_estimates;
 		}
 		else // REGRESSION 
-		{			
-			ssi_real_t score = (ssi_real_t) predict((model*)_model, x);
-			probs[0] = score;
+		{
+			ssi_real_t score = (ssi_real_t)predict((model*)_model, x);
+			confidence = probs[0] = score;
 		}
 
-		delete[] x;		
+		delete[] x;
 
 		return true;
 	}
