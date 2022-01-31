@@ -1,0 +1,2 @@
+[__________] # !ERROR! # could not parse pipeline from 'C:\Users\haiyangsun\source\repos\multimodal-sentiment\emovoice\-confstr;out:file=output/out ../emovoice'
+location: ..\..\..\tools\xmlpipe\Main.cpp (296)

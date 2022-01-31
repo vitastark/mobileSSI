@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<pipeline>
+	
+	<register>		
+		<load name="audio" depend="ssidialog.dll"/>
+		<load name="model"/>
+        <load name="ioput"/>
+	</register>
+
+    <framework waitid="reader"/>
+	<!-- audio sensor initialization -->
+	<gate open="$(audio:live)">
+		<sensor create="Audio" option="options/audio" sr="$(audio:sr)" scale="true">
+			<output channel="audio" pin="audio" sync="0"/>
+		</sensor>
+	</gate>
+	<gate close="$(audio:live)">
+		<sensor create="WavReader:reader" path="$(audio:file)" blockInSamples="512" scale="true" loop="false">
+			<output channel="audio" pin="audio"/>
+		</sensor>
+	</gate>
+
+	<!-- activity detection -->
+	<transformer create="AudioActivity" option="/root/code/SSI/mobileSSI/bin_cmake/Linux/data/chunks/activity">
+		<input pin="audio" frame="0.08s" delta="0.015s"/>
+		<output pin="vad"/>
+	</transformer>
+	<consumer create="TriggerEventSender" option="/root/code/SSI/mobileSSI/bin_cmake/Linux/data/chunkstrigger" address="vad@audio" incDuration="2.0" maxDuration="5.0">
+		<input pin="vad" frame="0.1s"/>
+	</consumer>
+
+	<object create="DecisionSmoother" address="emotion@audio" update="250" decay="0.01" speed="0.1" window="3.0" average="true">
+		<listen address="emotion-raw@audio"/>
+	</object>
+
+
+	<!-- feature extraction -->
+	<consumer create="TupleEventSender" address="feature@audio">
+		<input pin="audio" address="vad@audio">
+			<transformer create="Chain" path="/root/code/SSI/mobileSSI/bin_cmake/Linux/chains/$(model:chain)"/>
+		</input>
+	</consumer>
+
+	<!-- classifier -->
+	<object create="Classifier" path="/root/code/SSI/mobileSSI/bin_cmake/Linux/models/$(model:type).$(model:chain)" address="emotion@audio">
+		<listen address="feature@audio"/>
+	</object>	
+		
+	
+	<object create="FileEventWriter" path="$(out:file)">
+		<listen address="emotion@audio"/>
+	</object>
+		
+</pipeline>

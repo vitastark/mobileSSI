@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+
+<emovoice>	
+	<names>$(emotion@audio{field=name})</names>
+	<values>$(emotion@audio)</values>
+</emovoice>
+
