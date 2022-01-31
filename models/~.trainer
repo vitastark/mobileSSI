@@ -1,0 +1,11 @@
+<?xml version="1.0" ?><trainer ssi-v="5">
+    <info seed="1234" trained="false"/>
+	<register>
+		<item name="liblinear"/>		
+	</register>	
+    <samples balance="under" n_streams="1"><item path="E:\MEDIA-AI\Vocal-Emotion-Analysis\tools\emovoice-master\data\combined\anger.emovoice.samples"/><item path="E:\MEDIA-AI\Vocal-Emotion-Analysis\tools\emovoice-master\data\combined\fear.emovoice.samples"/><item path="E:\MEDIA-AI\Vocal-Emotion-Analysis\tools\emovoice-master\data\combined\happiness.emovoice.samples"/><item path="E:\MEDIA-AI\Vocal-Emotion-Analysis\tools\emovoice-master\data\combined\neutral.emovoice.samples"/><item path="E:\MEDIA-AI\Vocal-Emotion-Analysis\tools\emovoice-master\data\combined\sadness.emovoice.samples"/></samples>		    
+    <normalize>
+        <item method="Scale" stream="0"/>
+    </normalize>
+    <model create="LibLinear" option="linsvm" stream="0"/>
+</trainer>

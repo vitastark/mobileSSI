@@ -1,0 +1,12 @@
+             #classes:      5
+             #features:     1451
+             #total:        401
+             #classified:   401
+             #unclassified: 0
+             
+                 anger:     89      5     29      2      0    ->    71.20%
+                  fear:      1     57      5      5      1    ->    82.61%
+             happiness:     16      6     44      2      0    ->    64.71%
+               neutral:      0      0      2     72      2    ->    94.74%
+               sadness:      0      0      0      3     60    ->    95.24%
+                                                              =>    81.70% | 80.30%
