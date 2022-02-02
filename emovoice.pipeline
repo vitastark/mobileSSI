@@ -25,7 +25,7 @@
 		<input pin="audio" frame="0.08s" delta="0.015s"/>
 		<output pin="vad"/>
 	</transformer>
-	<consumer create="TriggerEventSender" option="/root/code/SSI/mobileSSI/bin_cmake/Linux/data/chunkstrigger" address="vad@audio" incDuration="2.0" maxDuration="5.0">
+	<consumer create="TriggerEventSender" option="/root/code/SSI/mobileSSI/bin_cmake/Linux/data/chunks/trigger" address="vad@audio" incDuration="2.0" maxDuration="5.0">
 		<input pin="vad" frame="0.1s"/>
 	</consumer>
 
